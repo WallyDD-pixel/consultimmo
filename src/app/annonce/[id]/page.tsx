@@ -298,7 +298,7 @@ export default function AnnonceDetail() {
         <div className="absolute inset-0" style={{background:'#30345de6',zIndex:1}} />
         <div className="relative z-10 flex items-center justify-between px-6 md:px-12 py-2 text-white">
           <Link href="/" className="flex items-center gap-3">
-            <img src="/Consult-Immo_5.png" alt="Logo" className="h-16 w-auto object-contain drop-shadow" />
+            <img src="/logo.svg" alt="Logo" className="h-16 w-auto object-contain drop-shadow" />
           </Link>
           <div className="flex items-center gap-3">
             <button onClick={toggleFav} aria-label={isFav ? 'Retirer des favoris' : 'Ajouter aux favoris'} className={`inline-flex items-center justify-center w-10 h-10 rounded-full border ${isFav ? 'bg-rose-500 text-white border-rose-500' : 'bg-white/80 text-rose-600 border-rose-200'} shadow`}> 
@@ -510,7 +510,7 @@ export default function AnnonceDetail() {
           <div className="h-px w-full bg-white/10 mb-6" />
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-3 mb-2 md:mb-0">
-              <img src="/Consult-Immo_5.png" alt="Logo Immo-enchères" className="h-8 w-auto" />
+              <img src="/logo.svg" alt="Logo Immo-enchères" className="h-8 w-auto" />
               <span className="font-bold text-lg tracking-tight">Immo-enchères</span>
             </div>
             <div className="flex gap-6 text-sm text-white/90">
