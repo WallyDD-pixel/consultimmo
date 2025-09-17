@@ -1,0 +1,23 @@
+// Prisma schema for contact questionnaire submissions
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model ContactSubmission {
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+
+  dejaAchete  Boolean
+  dejaVisite  Boolean
+  nom         String
+  avocat      Boolean
+  budget      Int
+  email       String
+  phone       String
+  source      String   @default("questionnaire")
+}
