@@ -51,8 +51,9 @@ export default function Questionnaire() {
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       setDone(true);
-    } catch (e: any) {
-      setError(e?.message || "Une erreur est survenue.");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Une erreur est survenue.";
+      setError(msg);
     } finally {
       setLoading(false);
     }

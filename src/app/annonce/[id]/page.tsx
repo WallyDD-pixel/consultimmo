@@ -236,7 +236,7 @@ export default function AnnonceDetail() {
     return (
       <main className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-6 text-center">
         <h1 className="text-2xl font-bold text-blue-900 mb-2">Annonce introuvable</h1>
-        <a href="/" className="text-orange-600 underline">Retour à l’accueil</a>
+        <Link href="/" className="text-orange-600 underline">Retour à l’accueil</Link>
       </main>
     );
   }

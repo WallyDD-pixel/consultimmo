@@ -39,7 +39,8 @@ export async function GET(req: Request) {
         "Cache-Control": "public, max-age=86400",
       },
     });
-  } catch (e: any) {
-    return NextResponse.json({ error: e?.message || "streetview proxy error" }, { status: 500 });
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : "streetview proxy error";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
 }

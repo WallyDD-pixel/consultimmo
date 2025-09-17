@@ -52,7 +52,7 @@ function formatVisiteHome(raw?: string): string {
   let year: number | null = null;
 
   // 1) JJ/MM/AAAA ou JJ-MM-AAAA
-  let m = s.match(/(\d{1,2})[\/.\- ](\d{1,2})[\/.\- ](\d{2,4})/);
+  const m = s.match(/(\d{1,2})[\/.\- ](\d{1,2})[\/.\- ](\d{2,4})/);
   if (m) {
     day = parseInt(m[1], 10);
     const mnum = parseInt(m[2], 10);
@@ -112,9 +112,9 @@ function isVisiteFuture(dateStr?: string): boolean {
   const m = dateStr.match(/(\d{1,2})[\/\-. ](\d{1,2}|[a-zéû]+)[\/\-. ](\d{2,4})/i);
   let d: Date | null = null;
   if (m) {
-    let day = parseInt(m[1], 10);
+  const day = parseInt(m[1], 10);
     let month = m[2];
-    let year = parseInt(m[3], 10);
+  const year = parseInt(m[3], 10);
     if (isNaN(year)) return true;
     if (isNaN(day)) return true;
     if (month.match(/\d+/)) {
@@ -260,7 +260,7 @@ function isVisiteFuture(dateStr?: string): boolean {
         <span className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-orange-100 mb-4">
           <svg className="w-8 h-8 text-orange-500" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3"/></svg>
         </span>
-        <span className="font-extrabold text-orange-500 text-lg mb-2">Stratégie d'enchères personnalisée</span>
+  <span className="font-extrabold text-orange-500 text-lg mb-2">Stratégie d&rsquo;enchères personnalisée</span>
         <span className="text-gray-700">Simulation détaillée et stratégie personnalisée basée sur votre budget, le marché actuel et notre expertise des enchères immobilières.</span>
       </li>
       <li className="bg-white rounded-2xl shadow-lg p-8 flex flex-col items-center text-center border border-gray-100 hover:shadow-2xl transition">
@@ -467,14 +467,14 @@ function isVisiteFuture(dateStr?: string): boolean {
                 <span className="mt-0.5 inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-700 font-bold border border-blue-200">2</span>
                 <div>
                   <div className="text-lg font-semibold text-blue-900">Accompagnement complet</div>
-                  <p className="text-gray-600 text-sm md:text-base">Nous vous guidons jusqu'à la vente aux enchères</p>
+                  <p className="text-gray-600 text-sm md:text-base">Nous vous guidons jusqu&rsquo;à la vente aux enchères</p>
                 </div>
               </li>
         <li className="flex items-start gap-4 animate-fade-in" style={{ animationDelay: '200ms' }}>
                 <span className="mt-0.5 inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-50 text-blue-700 font-bold border border-blue-200">3</span>
                 <div>
                   <div className="text-lg font-semibold text-blue-900">Paiement au succès</div>
-                  <p className="text-gray-600 text-sm md:text-base">Vous ne payez que si vous remportez l'enchère</p>
+                  <p className="text-gray-600 text-sm md:text-base">Vous ne payez que si vous remportez l&rsquo;enchère</p>
                 </div>
               </li>
             </ol>
