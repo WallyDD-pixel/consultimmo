@@ -200,7 +200,7 @@ function isVisiteFuture(dateStr?: string): boolean {
     <div className="absolute inset-0" style={{background:'#30345de6',zIndex:1}} />
   <div className="flex items-center justify-between px-6 md:px-12 py-2 shadow-2xl text-white relative z-10">
       <div className="flex items-center gap-4">
-  <img src="/Consult-Immo_5.png" alt="Logo Immo-enchères" className="h-16 w-auto object-contain drop-shadow" />
+  <img src="/logo.svg" alt="Logo Immo-enchères" className="h-16 w-auto object-contain drop-shadow" />
       </div>
       <div className="hidden md:flex gap-8 items-center text-base font-semibold">
         <a href="#enchere" className="hover:text-orange-400 transition">Enchères</a>
@@ -490,7 +490,7 @@ function isVisiteFuture(dateStr?: string): boolean {
           <div className="h-px w-full bg-white/10 mb-6" />
           <div className="flex flex-col md:flex-row justify-between items-center gap-6">
             <div className="flex items-center gap-3 mb-2 md:mb-0">
-              <img src="/Consult-Immo_5.png" alt="Logo" className="h-20 w-auto object-contain drop-shadow" />
+              <img src="/logo.svg" alt="Logo" className="h-20 w-auto object-contain drop-shadow" />
             </div>
             <div className="flex gap-6 text-sm text-white/90">
               <a href="#enchere" className="hover:text-yellow-400 transition-colors">Enchères</a>
