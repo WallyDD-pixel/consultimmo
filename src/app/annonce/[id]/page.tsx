@@ -29,7 +29,7 @@ type Annonce = {
 
 function formatPrix(prix: string | number) {
   const n = typeof prix === "number" ? prix : parseInt(prix.toString().replace(/[^\d]/g, ""));
-  if (isNaN(n)) return prix as any;
+  if (isNaN(n)) return String(prix);
   return n.toLocaleString("fr-FR", { minimumFractionDigits: 0 }) + " €";
 }
 
