@@ -135,6 +135,60 @@ function isVisiteFuture(dateStr?: string): boolean {
   return d.getTime() >= Date.now();
 }
 
+// Ne garder que les annonces dont la VENTE n'est pas passée (ou inconnue)
+function isVenteFuture(dateStr?: string): boolean {
+  if (!dateStr) return true;
+  const m = dateStr.match(/(\d{1,2})[\/\-. ](\d{1,2}|[a-zéû]+)[\/\-. ](\d{2,4})/i);
+  let d: Date | null = null;
+  if (m) {
+    const day = parseInt(m[1], 10);
+    let month: any = m[2];
+    let year = parseInt(m[3], 10);
+    if (year < 100) year += 2000;
+    if (month.match(/\d+/)) {
+      month = ("0" + month).slice(-2);
+      d = new Date(`${year}-${month}-${("0"+day).slice(-2)}`);
+    } else {
+      const mois = ["janvier","février","fevrier","mars","avril","mai","juin","juillet","août","aout","septembre","octobre","novembre","décembre","decembre"];
+      const idx = mois.findIndex(mo => mo.startsWith((month as string).toLowerCase().slice(0,3)));
+      if (idx >= 0) {
+        const mNum = (idx % 12) + 1;
+        d = new Date(`${year}-${("0"+mNum).slice(-2)}-${("0"+day).slice(-2)}`);
+      }
+    }
+  }
+  if (!d) return true;
+  d.setHours(23,59,59,999);
+  return d.getTime() >= Date.now();
+}
+
+// Retourne un objet Date pour trier par date de vente (null si introuvable)
+function parseVenteDate(dateStr?: string): Date | null {
+  if (!dateStr) return null;
+  const m = dateStr.match(/(\d{1,2})[\/\-. ](\d{1,2}|[a-zéû]+)[\/\-. ](\d{2,4})/i);
+  if (!m) return null;
+  const day = parseInt(m[1], 10);
+  let month: any = m[2];
+  let year = parseInt(m[3], 10);
+  if (year < 100) year += 2000;
+  if (month.match(/\d+/)) {
+    month = ("0" + month).slice(-2);
+    return new Date(`${year}-${month}-${("0"+day).slice(-2)}`);
+  }
+  const mois = ["janvier","février","fevrier","mars","avril","mai","juin","juillet","août","aout","septembre","octobre","novembre","décembre","decembre"];
+  const idx = mois.findIndex(mo => mo.startsWith((month as string).toLowerCase().slice(0,3)));
+  if (idx >= 0) {
+    const mNum = (idx % 12) + 1;
+    return new Date(`${year}-${("0"+mNum).slice(-2)}-${("0"+day).slice(-2)}`);
+  }
+  return null;
+}
+
+function prixToNumber(p: string): number {
+  const n = parseInt((p || "").toString().replace(/[^\d]/g, ""), 10);
+  return isNaN(n) ? Number.MAX_SAFE_INTEGER : n;
+}
+
   const [maxPrix, setMaxPrix] = useState("");
   const [page, setPage] = useState(1);
   const perPage = 7;
@@ -185,11 +239,28 @@ function isVisiteFuture(dateStr?: string): boolean {
     (minPrix ? parseInt(a.mise_a_prix.replace(/[^\d]/g, "")) >= parseInt(minPrix) : true) &&
     (maxPrix ? parseInt(a.mise_a_prix.replace(/[^\d]/g, "")) <= parseInt(maxPrix) : true) &&
     (showFavsOnly ? favorites.includes(a.id ?? -1) : true) &&
-    isVisiteFuture(a.date_visite)
+    // Masquer les ventes passées
+    isVenteFuture(a.date_vente)
   );
 
-  const totalPages = Math.ceil(filtered.length / perPage);
-  const paginated = filtered.slice((page - 1) * perPage, page * perPage);
+  // Tri pertinent: d'abord par date de vente la plus proche, puis prix croissant pour éviter d'afficher d'emblée des montants très élevés
+  const sorted = [...filtered].sort((a, b) => {
+    const da = parseVenteDate(a.date_vente);
+    const db = parseVenteDate(b.date_vente);
+    if (da && db) {
+      const cmp = da.getTime() - db.getTime();
+      if (cmp !== 0) return cmp;
+    } else if (da && !db) {
+      return -1;
+    } else if (!da && db) {
+      return 1;
+    }
+    // Ensuite trier par prix croissant
+    return prixToNumber(a.mise_a_prix) - prixToNumber(b.mise_a_prix);
+  });
+
+  const totalPages = Math.ceil(sorted.length / perPage);
+  const paginated = sorted.slice((page - 1) * perPage, page * perPage);
 
 
   return (

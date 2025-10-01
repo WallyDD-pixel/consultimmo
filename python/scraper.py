@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 from urllib.parse import urlparse, urlparse as _urlparse, parse_qs
 
 
@@ -8,15 +9,37 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import json
 import time
+import importlib
+# Import optionnel de 'keyboard' (utilisé pour interrompre le scraping avec la barre d'espace en local)
+keyboard = None
 try:
-    import keyboard
-except ImportError:
-    print("Le module 'keyboard' n'est pas installé. Installez-le avec 'pip install keyboard'.")
+    keyboard = importlib.import_module('keyboard')
+except Exception:
+    # Pas bloquant en prod / VPS
     keyboard = None
 
 base_url = "https://www.licitor.com/ventes-aux-encheres-immobilieres/paris-et-ile-de-france/prochaines-ventes.html?p={page}"
 headers = {"User-Agent": "Mozilla/5.0 (compatible; Scraper/1.0)"}
-max_page = 43
+
+# Limite de pages: par défaut 50, surchargeable par variable d'environnement MAX_PAGE ou argument --pages N
+def _get_max_page() -> int:
+    # Argument CLI --pages N
+    for i, arg in enumerate(sys.argv):
+        if arg == "--pages" and i + 1 < len(sys.argv):
+            try:
+                return max(1, int(sys.argv[i + 1]))
+            except ValueError:
+                pass
+    # Variable d'environnement
+    env_val = os.getenv("MAX_PAGE")
+    if env_val:
+        try:
+            return max(1, int(env_val))
+        except ValueError:
+            pass
+    return 50
+
+max_page = _get_max_page()
 
 def _format_coord(val):
     try:
@@ -291,27 +314,82 @@ for page in range(1, max_page + 1):
     print(f"Page {page} traitée, {len(cards)} annonces trouvées.")
     time.sleep(1)  # pause pour ne pas surcharger le serveur
 
+def _load_existing(public_path: str, local_path: str) -> list[dict]:
+    # Préfère le JSON public si présent, sinon local; sinon []
+    for p in (public_path, local_path):
+        try:
+            if os.path.exists(p):
+                with open(p, "r", encoding="utf-8") as f:
+                    data = json.load(f)
+                    if isinstance(data, list):
+                        return data
+        except Exception:
+            continue
+    return []
+
+def _key_for(item: dict) -> str:
+    # Clé de déduplication: Number prioritaire, sinon lien, sinon fallback sur trio (ville|adresse|mise_a_prix)
+    num = (item.get("Number") or "").strip()
+    if num:
+        return f"NUM:{num}"
+    lien = (item.get("lien") or "").strip()
+    if lien:
+        return f"URL:{lien}"
+    ville = (item.get("ville") or "").strip().lower()
+    adr = (item.get("adresse") or "").strip().lower()
+    prix = (item.get("mise_a_prix") or "").strip()
+    return f"FALL:{ville}|{adr}|{prix}"
+
+def _merge_items(existing: list[dict], new_items: list[dict]) -> list[dict]:
+    merged: dict[str, dict] = {}
+    # D'abord, indexer l'existant
+    for it in existing:
+        merged[_key_for(it)] = it
+    # Puis intégrer les nouveaux: remplacer si clé déjà présente, en privilégiant champs non vides
+    for it in new_items:
+        k = _key_for(it)
+        if k in merged:
+            base = merged[k]
+            # Fusion champ à champ: on remplit les vides de base avec les valeurs nouvelles non vides
+            out = base.copy()
+            for key, val in it.items():
+                if not out.get(key) and val:
+                    out[key] = val
+                # Si le nouveau texte est plus long (description), on prend le plus informatif
+                if key in ("texte", "AdditionalText"):
+                    if isinstance(val, str) and len(val) > len(out.get(key, "")):
+                        out[key] = val
+            merged[k] = out
+        else:
+            merged[k] = it
+    return list(merged.values())
+
 if not items:
     print("Aucune annonce n'a été récupérée. Vérifiez la connexion internet, le site ou les sélecteurs.")
 else:
-    df = pd.DataFrame(items)
+    here = os.path.dirname(__file__)
+    public_json = os.path.normpath(os.path.join(here, "..", "public", "licitor_samples.json"))
+    local_json = os.path.join(here, "licitor_samples.json")
+
+    # Charger l'existant pour éviter les doublons, puis fusionner
+    existing = _load_existing(public_json, local_json)
+    merged_items = _merge_items(existing, items)
+
+    df = pd.DataFrame(merged_items)
     # CSV local (dans le dossier python)
     df.to_csv("licitor_samples.csv", index=False)
     # JSON dans le dossier public du projet pour usage direct par le front
-    here = os.path.dirname(__file__)
-    public_json = os.path.normpath(os.path.join(here, "..", "public", "licitor_samples.json"))
     try:
         os.makedirs(os.path.dirname(public_json), exist_ok=True)
         with open(public_json, "w", encoding="utf-8") as f:
-            json.dump(items, f, ensure_ascii=False, indent=2)
+            json.dump(merged_items, f, ensure_ascii=False, indent=2)
         print(f"Écrit: {public_json}")
     except Exception as e:
         print(f"Erreur écriture JSON public: {e}")
     # Écrire également le JSON à côté du script (dossier python)
-    local_json = os.path.join(here, "licitor_samples.json")
     try:
         with open(local_json, "w", encoding="utf-8") as f:
-            json.dump(items, f, ensure_ascii=False, indent=2)
+            json.dump(merged_items, f, ensure_ascii=False, indent=2)
         print(f"Écrit: {local_json}")
     except Exception as e:
         print(f"Erreur écriture JSON local: {e}")
